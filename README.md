@@ -55,3 +55,37 @@ LaravelのMVCパターンを使った、投稿のCRUD機能を持つブログシ
 ![alt text](image-1.png)
 ![alt text](image-2.png)
 ![alt text](image-3.png)
+
+---
+
+# Week7練習1: 商品管理システム
+
+## 概要
+商品のCRUD機能を持つ、商品管理システムです。
+
+## 機能一覧
+- 商品一覧表示
+- 商品詳細表示
+- 商品作成（商品名、価格、説明、在庫数、カテゴリー）
+- 商品編集
+- 商品削除
+- バリデーション実装
+
+## テーブル定義（products）
+| カラム名 | 型 | 説明 |
+|---|---|---|
+| id | bigint | 主キー（自動採番） |
+| name | string | 商品名 |
+| price | integer | 価格 |
+| description | text | 説明 |
+| stock | integer | 在庫数 |
+| category | string | カテゴリー |
+| created_at | timestamp | 作成日時 |
+| updated_at | timestamp | 更新日時 |
+
+## スクリーンショット
+![alt text](<スクリーンショット 2026-07-31 015305.png>)
+![alt text](<スクリーンショット 2026-07-31 020227.png>)
+![alt text](<スクリーンショット 2026-07-31 020307.png>)
+![alt text](<スクリーンショット 2026-07-31 020411.png>)
+![alt text](<スクリーンショット 2026-07-31 020713.png>)
