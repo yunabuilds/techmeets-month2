@@ -89,3 +89,44 @@ LaravelのMVCパターンを使った、投稿のCRUD機能を持つブログシ
 ![alt text](<スクリーンショット 2026-07-31 020307.png>)
 ![alt text](<スクリーンショット 2026-07-31 020411.png>)
 ![alt text](<スクリーンショット 2026-07-31 020713.png>)
+
+---
+
+# Week7練習2: 予約システム
+
+## 概要
+イベント予約システムです。1つのイベントに対して、複数の予約が紐づく構成になっています。
+
+## 機能一覧
+- イベント一覧
+- イベント詳細
+- 予約作成（名前、メール、人数、日時）
+- 予約一覧
+- 予約のキャンセル
+
+## テーブル定義（events）
+| カラム名 | 型 | 説明 |
+|---|---|---|
+| id | bigint | 主キー（自動採番） |
+| name | string | イベント名 |
+| description | text | 説明 |
+| date | dateTime | 開催日時 |
+| created_at | timestamp | 作成日時 |
+| updated_at | timestamp | 更新日時 |
+
+## テーブル定義（reservations）
+| カラム名 | 型 | 説明 |
+|---|---|---|
+| id | bigint | 主キー（自動採番） |
+| event_id | bigint | どのイベントへの予約か（外部キー） |
+| name | string | 予約者名 |
+| email | string | メールアドレス |
+| number_of_people | integer | 人数 |
+| created_at | timestamp | 作成日時 |
+| updated_at | timestamp | 更新日時 |
+
+## スクリーンショット
+![alt text](image-7.png)
+![alt text](image-8.png)
+![alt text](image-9.png)
+![alt text](image-10.png)
