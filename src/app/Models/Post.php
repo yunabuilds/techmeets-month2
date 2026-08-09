@@ -10,5 +10,11 @@ class Post extends Model
         'title',
         'content',
         'category',
+        'user_id',
     ];
+
+     public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class);
+    }
 }

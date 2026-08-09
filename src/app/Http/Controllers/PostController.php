@@ -34,7 +34,7 @@ class PostController extends Controller
         'content' => 'required',
         'category' => 'required',
     ]);
-
+    $validated['user_id'] = auth()->id(); 
     $post = Post::create($validated);
 
     return redirect()->route('posts.show', $post)->with('success', '投稿を作成しました');
@@ -55,13 +55,18 @@ class PostController extends Controller
     public function edit(string $id)
 {
     $post = Post::findOrFail($id);
+
+    if ($post->user_id !== auth()->id()) {
+        abort(403, 'この操作は許可されていません');
+    }
+
     return view('posts.edit', compact('post'));
 }
 
     /**
      * Update the specified resource in storage.
      */
-   public function update(Request $request, string $id)
+  public function update(Request $request, string $id)
 {
     $validated = $request->validate([
         'title' => 'required|max:200',
@@ -70,6 +75,11 @@ class PostController extends Controller
     ]);
 
     $post = Post::findOrFail($id);
+
+    if ($post->user_id !== auth()->id()) {
+        abort(403, 'この操作は許可されていません');
+    }
+
     $post->update($validated);
 
     return redirect()->route('posts.show', $post)->with('success', '投稿を更新しました');
@@ -81,6 +91,11 @@ class PostController extends Controller
     public function destroy(string $id)
 {
     $post = Post::findOrFail($id);
+
+    if ($post->user_id !== auth()->id()) {
+        abort(403, 'この操作は許可されていません');
+    }
+
     $post->delete();
 
     return redirect()->route('posts.index')->with('success', '投稿を削除しました');
