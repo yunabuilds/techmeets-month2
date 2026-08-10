@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PostController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BoardPostController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -20,5 +21,14 @@ Route::middleware('auth')->group(function () {
     Route::resource('posts', PostController::class);
 
  });
+
+    Route::get('/board', [BoardPostController::class, 'index'])->name('board.index');
+    Route::get('/board/create', [BoardPostController::class, 'create'])->name('board.create');
+    Route::post('/board', [BoardPostController::class, 'store'])->name('board.store');
+    Route::get('/board/{board_post}', [BoardPostController::class, 'show'])->name('board.show');
+
+Route::middleware('auth')->group(function () {
+    Route::delete('/board/{board_post}', [BoardPostController::class, 'destroy'])->name('board.destroy');
+});
 
 require __DIR__.'/auth.php';
