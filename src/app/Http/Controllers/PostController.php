@@ -3,19 +3,25 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Post;
+use App\Services\PostService;
+use App\Repositories\PostRepository;
 
 class PostController extends Controller
 {
+    public function __construct(
+        private PostService $postService,
+        private PostRepository $postRepository
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $posts = Post::latest()->paginate(10);
+         $posts = $this->postRepository->getAll();
         return view('posts.index', compact('posts'));
     }
-
+   
     /**
      * Show the form for creating a new resource.
      */
@@ -35,7 +41,7 @@ class PostController extends Controller
         'category' => 'required',
     ]);
 
-    $post = Post::create($validated);
+    $post = $this->postService->createPost($validated);
 
     return redirect()->route('posts.show', $post)->with('success', '投稿を作成しました');
 }
@@ -45,7 +51,7 @@ class PostController extends Controller
      */
     public function show(string $id)
 {
-    $post = Post::findOrFail($id);
+   $post = $this->postRepository->findById($id);
     return view('posts.show', compact('post'));
 }
 
@@ -54,7 +60,7 @@ class PostController extends Controller
      */
     public function edit(string $id)
 {
-    $post = Post::findOrFail($id);
+    $post = $this->postRepository->findById($id);
     return view('posts.edit', compact('post'));
 }
 
@@ -63,25 +69,29 @@ class PostController extends Controller
      */
    public function update(Request $request, string $id)
 {
+    $post = $this->postRepository->findById($id);
+    $this->authorize('update', $post); 
+
+
     $validated = $request->validate([
         'title' => 'required|max:200',
         'content' => 'required',
         'category' => 'required',
     ]);
 
-    $post = Post::findOrFail($id);
-    $post->update($validated);
+    $post = $this->postService->updatePost($id, $validated);
 
     return redirect()->route('posts.show', $post)->with('success', '投稿を更新しました');
 }
-
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
 {
-    $post = Post::findOrFail($id);
-    $post->delete();
+    $post = $this->postRepository->findById($id);
+    $this->authorize('delete', $post);
+
+    $this->postService->deletePost($id);
 
     return redirect()->route('posts.index')->with('success', '投稿を削除しました');
 }
