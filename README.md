@@ -1,4 +1,67 @@
-# Laravel Docker 開発環境
+
+# Week9: 設計・責務分離 + DB設計の深化
+
+## 概要
+Repository/Serviceパターンを用いて、既存のブログアプリをリファクタリングし、
+新たにタスク管理アプリをRepository/Serviceパターンで新規構築した。
+
+## Before / After（ブログアプリ: PostController）
+
+### Before
+- バリデーション・DB操作（検索・作成・更新・削除）が、すべて1つのControllerに直接書かれていた
+- 認可チェック（自分の投稿かどうか）が実装されておらず、誰でも他人の投稿を編集・削除できる状態だった
+
+### After
+- **PostRepository**: DB操作（全件取得・1件取得・作成・更新・削除）のみを担当
+- **PostService**: ビジネスロジック（投稿の作成・更新・削除の一連の流れ）を担当
+- **PostController**: リクエストを受け取り、バリデーションを行い、Service/Repositoryに処理を橋渡しするだけの薄い層になった
+- **PostPolicy**: 「自分の投稿のみ編集・削除できる」という認可ルールを1箇所に集約
+
+### リファクタリングの所感
+リファクタリング後のコードは、Before と比べて行数自体は増えた。
+しかし、各メソッドが「Repositoryを呼ぶ」「Serviceを呼ぶ」という
+同じパターンの繰り返しになったことで、コード全体としては見やすくなった。
+今後、機能追加や仕様変更が発生した際も、影響範囲が
+Repository・Service・Policyのどこか1箇所のクラスに閉じるため、
+修正がしやすくなると感じた。→責任分離の考え方
+
+### 今後の学習ポイント
+- 現時点では、「どのクラスに何を書くべきか」という判断基準は、
+Repository（DB操作）・Service（業務ロジック）・Policy（認可ルール）・
+Controller（リクエストの橋渡し）という大枠は理解できたが、
+実際の変更要望に対して「どの層を直すべきか」を素早く判断できる
+感覚は十分に身についておらず、まだ実践を重ねる必要がある。
+- 同じ型を使うことで変更修正がしやすいのはわかったが、具体的に変更したい箇所に対してどの部分を変更するかといった判断は練習が櫃うようである。
+
+
+## 練習課題1: タスク管理アプリ
+
+### 概要
+最初からRepository/Serviceパターンでタスク管理アプリを構築した。
+
+### テーブル定義（tasks）
+| カラム名 | 型 | 説明 |
+|---|---|---|
+| id | bigint | 主キー（自動採番） |
+| title | string | タイトル |
+| description | text | 詳細 |
+| due_date | date | 期限 |
+| priority | string | 優先度（高・中・低） |
+| is_completed | boolean | 完了したかどうか（デフォルトfalse） |
+| user_id | bigint | どのユーザーのタスクか（外部キー） |
+| created_at | timestamp | 作成日時 |
+| updated_at | timestamp | 更新日時 |
+
+### 実装したクラス
+- TaskRepository / TaskService / TaskController / TaskPolicy
+- 「完了にする」専用メソッド（markAsCompleted）をServiceに用意し、
+  単一責任の原則を意識した設計にした
+
+## 既知の問題（解決済み）
+作業中、Laravel Breeze（認証機能）がmasterブランチに正しく反映されて
+いない問題が発覚したため、Breezeの再インストールを行い復旧した。
+
+---# Laravel Docker 開発環境
 
 ## 必要なもの
 - Docker Desktop
