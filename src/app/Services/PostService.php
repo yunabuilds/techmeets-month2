@@ -10,10 +10,11 @@ class PostService
         private PostRepository $postRepository
     ) {}
 
-    public function createPost(array $data)
-    {
-        return $this->postRepository->create($data);
-    }
+   public function createPost(array $data)
+   {
+    $data['user_id'] = auth()->id();  
+    return $this->postRepository->create($data);
+   }
 
     public function updatePost(string $id, array $data)
     {
