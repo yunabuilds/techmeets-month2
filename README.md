@@ -119,77 +119,34 @@ LaravelのMVCパターンを使った、投稿のCRUD機能を持つブログシ
 ![alt text](image-2.png)
 ![alt text](image-3.png)
 
----
-
-# Week7練習1: 商品管理システム
-
-## 概要
-商品のCRUD機能を持つ、商品管理システムです。
-
-## 機能一覧
-- 商品一覧表示
-- 商品詳細表示
-- 商品作成（商品名、価格、説明、在庫数、カテゴリー）
-- 商品編集
-- 商品削除
-- バリデーション実装
-
-## テーブル定義（products）
-| カラム名 | 型 | 説明 |
-|---|---|---|
-| id | bigint | 主キー（自動採番） |
-| name | string | 商品名 |
-| price | integer | 価格 |
-| description | text | 説明 |
-| stock | integer | 在庫数 |
-| category | string | カテゴリー |
-| created_at | timestamp | 作成日時 |
-| updated_at | timestamp | 更新日時 |
-
-## スクリーンショット
-![alt text](<スクリーンショット 2026-07-31 015305.png>)
-![alt text](<スクリーンショット 2026-07-31 020227.png>)
-![alt text](<スクリーンショット 2026-07-31 020307.png>)
-![alt text](<スクリーンショット 2026-07-31 020411.png>)
-![alt text](<スクリーンショット 2026-07-31 020713.png>)
 
 ---
 
-# Week7練習2: 予約システム
+# Week11: AWS基礎・本番環境デプロイ
 
 ## 概要
-イベント予約システムです。1つのイベントに対して、複数の予約が紐づく構成になっています。
+Week6で構築したDocker環境を、AWS(EC2・RDS)上にデプロイし、インターネットからアクセスできる本番環境を構築した。
 
-## 機能一覧
-- イベント一覧
-- イベント詳細
-- 予約作成（名前、メール、人数、日時）
-- 予約一覧
-- 予約のキャンセル
+## デプロイ構成
+- **EC2**: Ubuntu Server 26.04 LTS, t3.micro(無料利用枠)
+- **RDS**: MySQL 8.0, db.t4g.micro(無料利用枠)
+- **Webサーバー**: Nginx + PHP-FPM(Docker)
 
-## テーブル定義（events）
-| カラム名 | 型 | 説明 |
-|---|---|---|
-| id | bigint | 主キー（自動採番） |
-| name | string | イベント名 |
-| description | text | 説明 |
-| date | dateTime | 開催日時 |
-| created_at | timestamp | 作成日時 |
-| updated_at | timestamp | 更新日時 |
+## デプロイ手順
+1. EC2インスタンスを作成し、SSHで接続
+2. RDSインスタンスを作成し、Laravelの`.env`にDB接続情報を設定
+3. EC2にDocker・Docker Composeをインストール
+4. GitHubからリポジトリをclone
+5. `docker compose up -d`でコンテナを起動
+6. `composer install`・`php artisan key:generate`・`php artisan migrate`を実行
+7. ブラウザから動作確認
 
-## テーブル定義（reservations）
-| カラム名 | 型 | 説明 |
-|---|---|---|
-| id | bigint | 主キー（自動採番） |
-| event_id | bigint | どのイベントへの予約か（外部キー） |
-| name | string | 予約者名 |
-| email | string | メールアドレス |
-| number_of_people | integer | 人数 |
-| created_at | timestamp | 作成日時 |
-| updated_at | timestamp | 更新日時 |
+## セキュリティグループの設計
 
-## スクリーンショット
-![alt text](image-7.png)
-![alt text](image-8.png)
-![alt text](image-9.png)
-![alt text](image-10.png)
+| タイプ | ポート | 送信元(ソース) | 理由 |
+|---|---|---|---|
+| SSH | 22 | 自分のIPのみ(`/32`) |SSHは管理者がサーバーの中身を設定するための入り口のような場所で、ポート範囲を全世界のままにすると、ブルーフォース攻撃という総当たりのパスワード攻撃に遭ったり、EC2からのアクセスを通じてネット上からDBに不正アクセスされ乗っ取られるなどの危険があるため。
+| HTTP | 80 | 全世界(`0.0.0.0/0`) | 一般人がブラウザでウェブサイトにアクセスするためのものなのでこれは逆に全世界でないと自分以外の人がサイトを見ることができずに意味がないから|
+| HTTPS | 443 | 全世界(`0.0.0.0/0`) | こちらもHTTPと同じように誰でもウェブサイトを閲覧できるように全世界へ公開になっている。現在はweek13で実施予定のHTTPS化に備えて開放してる状態になっている。 |
+| MySQL(RDS) | 3306 | EC2のセキュリティグループのみ | 自分自身ではなくサーバーのEC2がアクセスするためEC2ノセキュリティグループのみができる状態になっていればいいから送信元を限定することで、ネット上全体からの直接アクセスを防ぐ。またRDS自体のパブリックアクセスも無効なので二重で保護している。|
+
