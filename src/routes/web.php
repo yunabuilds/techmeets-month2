@@ -1,11 +1,11 @@
 <?php
-
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\S3UploadController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -27,5 +27,8 @@ Route::resource('products', ProductController::class);
 Route::resource('events', EventController::class);
 Route::resource('reservations', ReservationController::class);
 Route::resource('tasks', TaskController::class);
+
+Route::get('/s3-upload', [S3UploadController::class, 'create']);
+Route::post('/s3-upload', [S3UploadController::class, 'store']);
 
 require __DIR__.'/auth.php';
