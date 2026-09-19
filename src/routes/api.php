@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\StripeWebhookController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -10,3 +11,4 @@ Route::get('/user', function (Request $request) {
 
 Route::get('/tasks', [TaskController::class, 'index']);
 Route::post('/tasks', [TaskController::class, 'store']);
+Route::post('/webhook/stripe', [StripeWebhookController::class, 'handle']);
