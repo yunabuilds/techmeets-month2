@@ -5,6 +5,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\S3UploadController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,7 +29,13 @@ Route::resource('events', EventController::class);
 Route::resource('reservations', ReservationController::class);
 Route::resource('tasks', TaskController::class);
 
+
+require __DIR__.'/auth.php';
+
+Route::get('/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
+Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::get('/checkout/cancel', fn() => view('checkout.cancel'))->name('checkout.cancel');
+
 Route::get('/s3-upload', [S3UploadController::class, 'create']);
 Route::post('/s3-upload', [S3UploadController::class, 'store']);
 
-require __DIR__.'/auth.php';
