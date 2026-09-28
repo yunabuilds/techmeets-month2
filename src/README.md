@@ -1,3 +1,29 @@
+## Week 13: 独自ドメイン + HTTPS 公開
+
+公開URL: https://myapp-yuna.com
+
+### コマンド確認
+
+#### dig myapp-yuna.com +short
+出力: 52.197.47.31
+意味:
+- ドメイン名がどのIPアドレスを指しているかをDNSに問い合わせて確認するコマンド。EC2のElastic IPが返ったので、Aレコードが正しく反映されている。
+
+#### curl -I https://myapp-yuna.com
+出力: 出力（抜粋）: HTTP/1.1 200 OK / Server: nginx/1.28.3 / X-Powered-By: PHP/8.2.33
+意味:
+- 200 :リクエストが正常に処理されページが返った
+- Server: nginx/1.28.3 ：リクエストを受けて返答を返したサーバーソフトがNginx
+- X-Powered-By: PHP/8.2.33：アプリがPHP で動いていることを示す
+
+#### sudo certbot certificates
+出力: Expiry Date: 2026-12-27 (VALID: 89 days)
+
+意味: 
+- 有効期限: 2026-12-27 で、残り89日。証明書は有効な状態
+- 自動更新: `certbot.timer` が1日2回動作し、期限が近づくと自動で更新する。`sudo certbot renew --dry-run` で更新の予行演習が成功した
+---
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
