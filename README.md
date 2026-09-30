@@ -170,3 +170,57 @@ Laravel Storageファサードを使い、アップロードされた画像をEC
 
 ### 動作確認
 `http://EC2のIPアドレス/s3-upload` にアクセスし、画像をアップロードして、S3上のURLが発行され、画像が正しく表示されることを確認した。
+
+---
+
+# Week12: 外部API連携（Stripe決済・SendGridメール・Webhook）
+
+## 概要
+Stripe・SendGridという2つの外部APIサービスと連携し、決済機能とメール送信機能を実装した。また、Stripeからの非同期通知（Webhook）を受信し、署名検証を行った上で処理する仕組みを構築した。
+
+## 実装内容
+
+### 基本課題: Stripeテスト決済機能
+- Stripe Checkout Sessionを使った決済フロー（商品ページ→決済→完了ページ）を実装
+- テストカード（4242 4242 4242 4242）で決済が通ることを確認
+- 決済完了後、購入履歴をDB（purchasesテーブル）に保存する処理を実装
+
+### テーブル定義（purchases）
+| カラム名 | 型 | 説明 |
+|---|---|---|
+| id | bigint | 主キー（自動採番） |
+| stripe_session_id | string | StripeのCheckout SessionID |
+| product_name | string | 商品名 |
+| amount | integer | 決済金額（円） |
+| email | string | 購入者のメールアドレス（nullable） |
+| created_at | timestamp | 作成日時 |
+| updated_at | timestamp | 更新日時 |
+
+### 練習課題1: SendGridによるウェルカムメール送信
+- 会員登録完了時に、SendGrid経由でウェルカムメールを自動送信する機能を実装
+- SendGridのSingle Sender Verificationで送信元メールアドレスを認証
+- SendGridのActivity Feedで、メールが正常に配達されたことを確認済み
+
+### 練習課題2: Stripe Webhookによる決済完了処理
+- Stripe CLIを使ってローカル環境にWebhookをフォワードし、動作確認
+- 署名検証（Webhook::constructEvent()）を実装し、不正なリクエストを拒否する仕組みを構築
+- 決済完了イベント（payment_intent.succeeded）を受信した際、決済IDをログに記録する処理を実装
+
+## つまずいた点と解決策
+- `.env`にAPIキーを設定しても、`config/services.php`側に橋渡しの設定（`env('STRIPE_SECRET')`など）を追記し忘れており、決済処理がタイムアウトする問題が発生した。`config:clear`でキャッシュをクリアし、設定を追記することで解決した。
+- SendGridでのメール送信時、送信元アドレス（MAIL_FROM_ADDRESS）がSendGrid側で未認証だったため「550 The from address does not match a verified Sender Identity」というエラーが発生した。Single Sender Verificationで実際に受信できるメールアドレスを認証することで解決した。
+- Docker環境のポート番号が、Docker用の`.env`に`APP_PORT`を設定していなかったため、コンテナ再起動のたびにランダムに変わる問題があった。
+
+## 改善対応
+提出後のレビューで以下についての指摘を頂いた。（3点）※現在は修正済み
+
+1. **例外処理の追加**: `Session::create()`・`Session::retrieve()`をtry/catchで囲み、`ApiErrorException`を捕捉してログに記録した上で、ユーザーには分かりやすいエラーメッセージを表示するよう修正した。
+2. **決済成功ページの重複保存防止**: `success`メソッドで`payment_status === 'paid'`をチェックし、`firstOrCreate`を使うことで、同一の`session_id`による重複保存・不正なアクセスでの保存を防止した。
+3. **`.env.example`の追記**: `STRIPE_WEBHOOK_SECRET`とSendGrid用の`MAIL_`設定項目を追記し、環境構築時に必要な項目が一目で分かるようにした。
+
+## 動作確認
+- `http://localhost:PORT/checkout`からテストカードで決済を実施し、DBへの保存・Stripeダッシュボードでの取引記録を確認。
+- 会員登録後、SendGridのActivity Feedで「Delivered」ステータスと開封（Opens）を確認した。
+- `stripe trigger payment_intent.succeeded`を実行し、Laravelのログに決済IDが正しく記録されることを確認した。
+
+---
