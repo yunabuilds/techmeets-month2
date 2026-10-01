@@ -22,6 +22,56 @@
 意味: 
 - 有効期限: 2026-12-27 で、残り89日。証明書は有効な状態
 - 自動更新: `certbot.timer` が1日2回動作し、期限が近づくと自動で更新する。`sudo certbot renew --dry-run` で更新の予行演習が成功した
+
+
+### Nginx設定（抜粋）
+
+EC2上の `/etc/nginx/sites-available/myapp.conf` に設定した内容。
+Dockerコンテナ（Laravel, ポート8000）へのリバースプロキシと、
+HTTP→HTTPS、wwwあり→wwwなしのリダイレクトを行っている。
+
+```nginx
+# 1. HTTPS, no www (アプリ本体)
+server {
+    listen 443 ssl;
+    server_name myapp-yuna.com;
+
+    location / {
+        proxy_pass         http://localhost:8000;
+        proxy_http_version 1.1;
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+    }
+
+    ssl_certificate /etc/letsencrypt/live/myapp-yuna.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/myapp-yuna.com/privkey.pem;
+}
+
+# 2. HTTPS, www あり → wwwなしへリダイレクト
+server {
+    listen 443 ssl;
+    server_name www.myapp-yuna.com;
+
+    ssl_certificate /etc/letsencrypt/live/myapp-yuna.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/myapp-yuna.com/privkey.pem;
+
+    return 301 https://myapp-yuna.com$request_uri;
+}
+
+# 3. HTTP → HTTPS + wwwなしへリダイレクト
+server {
+    listen 80;
+    server_name myapp-yuna.com www.myapp-yuna.com;
+
+    return 301 https://myapp-yuna.com$request_uri;
+}
+```
+
+### 振り返り
+- 設定を変更したら、`curl -I` や `dig` で実際の挙動の確認を行った。
+- 見た目（ブラウザ）だけでなく、レスポンスヘッダーやステータスコードまで確認することで、設定ミスにも気づきやすくなる。
 ---
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
