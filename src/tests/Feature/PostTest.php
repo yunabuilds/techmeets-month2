@@ -84,4 +84,94 @@ class PostTest extends TestCase
         $response->assertRedirect(route('posts.index'));
         $this->assertDatabaseMissing('posts', ['id' => $post->id]);
     }
+    // ===== エッジケース =====
+
+    // タイトルがちょうど200文字ならOK（境界値）
+    public function test_title_with_200_characters_is_valid()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/posts', [
+            'title'    => str_repeat('a', 200),
+            'content'  => 'content',
+            'category' => 'tech',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+    }
+
+    // タイトルが201文字ならエラー（境界値の1つ外）
+    public function test_title_with_201_characters_is_invalid()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/posts', [
+            'title'    => str_repeat('a', 201),
+            'content'  => 'content',
+            'category' => 'tech',
+        ]);
+
+        $response->assertSessionHasErrors('title');
+    }
+
+    // 存在しない投稿を開くと404
+    public function test_viewing_nonexistent_post_returns_404()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/posts/999');
+
+        $response->assertStatus(404);
+    }
+
+    // 投稿が0件でも一覧が表示できる
+    public function test_posts_index_works_with_no_posts()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/posts');
+
+        $response->assertStatus(200);
+    }
+
+    // ===== バリデーション =====
+
+    public function test_title_is_required()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/posts', [
+            'title'    => '',
+            'content'  => 'content',
+            'category' => 'tech',
+        ]);
+
+        $response->assertSessionHasErrors('title');
+    }
+
+    public function test_content_is_required()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/posts', [
+            'title'    => 'Title',
+            'content'  => '',
+            'category' => 'tech',
+        ]);
+
+        $response->assertSessionHasErrors('content');
+    }
+
+    public function test_category_is_required()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/posts', [
+            'title'    => 'Title',
+            'content'  => 'content',
+            'category' => '',
+        ]);
+
+        $response->assertSessionHasErrors('category');
+    }
 }
