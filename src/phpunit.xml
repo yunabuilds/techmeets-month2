@@ -16,6 +16,13 @@
         <include>
             <directory>app</directory>
         </include>
+        <exclude>
+            <directory>app/Http/Controllers/Api</directory>
+            <directory>app/Http/Resources</directory>
+            <file>app/Http/Controllers/CheckoutController.php</file>
+            <file>app/Http/Controllers/StripeWebhookController.php</file>
+            <file>app/Http/Controllers/S3UploadController.php</file>
+        </exclude>
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>

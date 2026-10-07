@@ -174,4 +174,55 @@ class PostTest extends TestCase
 
         $response->assertSessionHasErrors('category');
     }
+    
+        // ===== 未ログイン =====
+
+    public function test_guest_cannot_create_post()
+    {
+        $response = $this->post('/posts', [
+            'title'    => 'Test Post',
+            'content'  => 'content',
+            'category' => 'tech',
+        ]);
+
+        $response->assertRedirect('/login');
+        $this->assertDatabaseCount('posts', 0);
+    }
+
+    public function test_guest_cannot_view_create_page()
+    {
+        $response = $this->get('/posts/create');
+
+        $response->assertRedirect('/login');
+    }
+
+    // ===== 認可（他人の投稿） =====
+
+    public function test_user_cannot_update_others_post()
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        $post  = Post::factory()->create(['user_id' => $owner->id]);
+
+        $response = $this->actingAs($other)->put("/posts/{$post->id}", [
+            'title'    => 'Hacked',
+            'content'  => 'content',
+            'category' => 'tech',
+        ]);
+
+        $response->assertStatus(403);
+        $this->assertDatabaseMissing('posts', ['title' => 'Hacked']);
+    }
+
+    public function test_user_cannot_delete_others_post()
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        $post  = Post::factory()->create(['user_id' => $owner->id]);
+
+        $response = $this->actingAs($other)->delete("/posts/{$post->id}");
+
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('posts', ['id' => $post->id]);
+    }
 }
