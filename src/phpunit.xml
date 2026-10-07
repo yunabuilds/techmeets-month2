@@ -22,6 +22,17 @@
             <file>app/Http/Controllers/CheckoutController.php</file>
             <file>app/Http/Controllers/StripeWebhookController.php</file>
             <file>app/Http/Controllers/S3UploadController.php</file>
+                        <!-- Week 7 練習課題（別アプリ） -->
+            <file>app/Http/Controllers/ProductController.php</file>
+            <file>app/Http/Controllers/EventController.php</file>
+            <file>app/Http/Controllers/ReservationController.php</file>
+            <file>app/Models/Event.php</file>
+            <file>app/Models/Reservation.php</file>
+            <!-- Week 9 練習課題：タスク管理アプリ（TaskServiceはService層として計測に残す） -->
+            <file>app/Http/Controllers/TaskController.php</file>
+            <file>app/Repositories/TaskRepository.php</file>
+            <file>app/Policies/TaskPolicy.php</file>
+            <file>app/Models/Task.php</file>
         </exclude>
     </source>
     <php>

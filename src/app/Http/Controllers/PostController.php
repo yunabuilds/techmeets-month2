@@ -95,4 +95,12 @@ class PostController extends Controller
 
     return redirect()->route('posts.index')->with('success', '投稿を削除しました');
 }
+
+    public function like(string $id)
+    {
+        $post = $this->postRepository->findById($id);
+        $post->increment('likes_count');
+
+        return redirect()->route('posts.show', $post);
+    }
 }
