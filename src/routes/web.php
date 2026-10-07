@@ -23,7 +23,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::resource('posts', PostController::class);
+Route::resource('posts', PostController::class)->except(['index', 'show'])->middleware('auth');
+Route::resource('posts', PostController::class)->only(['index', 'show']);
+Route::post('/posts/{post}/like', [PostController::class, 'like'])->middleware('auth')->name('posts.like');
 Route::resource('products', ProductController::class);
 Route::resource('events', EventController::class);
 Route::resource('reservations', ReservationController::class);

@@ -16,14 +16,32 @@
         <include>
             <directory>app</directory>
         </include>
+        <exclude>
+            <directory>app/Http/Controllers/Api</directory>
+            <directory>app/Http/Resources</directory>
+            <file>app/Http/Controllers/CheckoutController.php</file>
+            <file>app/Http/Controllers/StripeWebhookController.php</file>
+            <file>app/Http/Controllers/S3UploadController.php</file>
+                        <!-- Week 7 練習課題（別アプリ） -->
+            <file>app/Http/Controllers/ProductController.php</file>
+            <file>app/Http/Controllers/EventController.php</file>
+            <file>app/Http/Controllers/ReservationController.php</file>
+            <file>app/Models/Event.php</file>
+            <file>app/Models/Reservation.php</file>
+            <!-- Week 9 練習課題：タスク管理アプリ（TaskServiceはService層として計測に残す） -->
+            <file>app/Http/Controllers/TaskController.php</file>
+            <file>app/Repositories/TaskRepository.php</file>
+            <file>app/Policies/TaskPolicy.php</file>
+            <file>app/Models/Task.php</file>
+        </exclude>
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>
-        <!-- <env name="DB_CONNECTION" value="sqlite"/> -->
-        <!-- <env name="DB_DATABASE" value=":memory:"/> -->
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

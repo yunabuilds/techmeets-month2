@@ -27,4 +27,12 @@ class PostService
         $post = $this->postRepository->findById($id);
         return $this->postRepository->delete($post);
     }
+
+        public function likePost(string $id)
+    {
+        $post = $this->postRepository->findById($id);
+        $post->increment('likes_count');
+
+        return $post;
+    }
 }
