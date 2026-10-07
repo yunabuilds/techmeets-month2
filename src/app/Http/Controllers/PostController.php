@@ -98,8 +98,7 @@ class PostController extends Controller
 
     public function like(string $id)
     {
-        $post = $this->postRepository->findById($id);
-        $post->increment('likes_count');
+        $post = $this->postService->likePost($id);
 
         return redirect()->route('posts.show', $post);
     }
