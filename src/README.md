@@ -1,3 +1,4 @@
+
 ## Week 13: 独自ドメイン + HTTPS 公開
 
 公開URL: https://myapp-yuna.com
@@ -73,6 +74,38 @@ server {
 - 設定を変更したら、`curl -I` や `dig` で実際の挙動の確認を行った。
 - 見た目（ブラウザ）だけでなく、レスポンスヘッダーやステータスコードまで確認することで、設定ミスにも気づきやすくなる。
 ---
+## Week 14：テスト・品質チェックの結果
+
+### テスト結果
+```
+Tests:    57 passed (124 assertions)
+```
+
+### カバレッジ
+```
+Total: 89.6 %
+```
+課題の対象であるブログアプリの範囲で計測。Week 7・9の練習課題とWeek 10〜12の機能は除外。
+
+### ESLint
+```
+npx eslint resources/js/
+→ エラー0件
+```
+
+### npm audit
+```
+修正前: 12 vulnerabilities (2 moderate, 8 high, 2 critical)
+修正後: 7 vulnerabilities (2 moderate, 5 high)
+```
+`npm audit fix` で critical 2件を含む5件を修正。残り7件は Tailwind CSS 3系が使っている部品のもので、修正には Tailwind 4 へのメジャーアップデートが必要なため、別途対応予定。
+
+### composer audit
+```
+修正前: Found 22 security vulnerability advisories affecting 4 packages
+修正後: Found 4 security vulnerability advisories affecting 1 package
+```
+guzzle・commonmark・flysystem を更新。残り4件は laravel/framework のもので、Laravel 11系には修正版がないため、Laravel 12 へのアップグレードで対応予定。
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
@@ -140,3 +173,4 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
