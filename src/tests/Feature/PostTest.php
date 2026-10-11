@@ -174,8 +174,8 @@ class PostTest extends TestCase
 
         $response->assertSessionHasErrors('category');
     }
-    
-        // ===== 未ログイン =====
+
+    // ===== 未ログイン =====
 
     public function test_guest_cannot_create_post()
     {

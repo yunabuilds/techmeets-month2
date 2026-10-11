@@ -8,13 +8,14 @@ class PostService
 {
     public function __construct(
         private PostRepository $postRepository
-    ) {}
+    ) {
+    }
 
-   public function createPost(array $data)
-   {
-    $data['user_id'] = auth()->id();  
-    return $this->postRepository->create($data);
-   }
+    public function createPost(array $data)
+    {
+        $data['user_id'] = auth()->id();
+        return $this->postRepository->create($data);
+    }
 
     public function updatePost(string $id, array $data)
     {
@@ -28,7 +29,7 @@ class PostService
         return $this->postRepository->delete($post);
     }
 
-        public function likePost(string $id)
+    public function likePost(string $id)
     {
         $post = $this->postRepository->findById($id);
         $post->increment('likes_count');

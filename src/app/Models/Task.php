@@ -15,7 +15,7 @@ class Task extends Model
     'user_id',
 ];
 
-// belongsTo: タスク(多) → ユーザー(1)
+    // belongsTo: タスク(多) → ユーザー(1)
     public function user()
     {
         return $this->belongsTo(User::class);

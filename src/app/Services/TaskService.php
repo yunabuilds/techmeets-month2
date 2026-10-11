@@ -8,7 +8,8 @@ class TaskService
 {
     public function __construct(
         private TaskRepository $taskRepository
-    ) {}
+    ) {
+    }
 
     public function createTask(array $data)
     {
@@ -28,8 +29,8 @@ class TaskService
     }
 
     public function markAsCompleted(string $id)
-{
-    $task = $this->taskRepository->findById($id);
-    return $this->taskRepository->update($task, ['is_completed' => true]);
-}
+    {
+        $task = $this->taskRepository->findById($id);
+        return $this->taskRepository->update($task, ['is_completed' => true]);
+    }
 }

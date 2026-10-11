@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Services\TaskService;
 use App\Repositories\TaskRepository;
+use App\Services\TaskService;
+use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
     public function __construct(
         private TaskService $taskService,
         private TaskRepository $taskRepository
-    ) {}
+    ) {
+    }
 
     public function index()
     {
