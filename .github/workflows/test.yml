@@ -37,6 +37,23 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
+                - name: Copy .env
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build frontend assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Run migrations
+
       - name: Run migrations
         env:
           DB_CONNECTION: mysql
