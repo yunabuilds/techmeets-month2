@@ -107,6 +107,48 @@ npx eslint resources/js/
 ```
 guzzle・commonmark・flysystem を更新。残り4件は laravel/framework のもので、Laravel 11系には修正版がないため、Laravel 12 へのアップグレードで対応予定。
 
+---
+
+## Week 15: CI/CD（GitHub Actions）
+
+### 概要
+GitHub Actionsを使って、pushやPRのたびにコードチェックとテストを自動で実行し、
+masterにマージされたらEC2へ自動でデプロイされる仕組みを構築した。
+
+### 構築したWorkflow
+
+| ファイル | 動くタイミング | 内容 |
+|---|---|---|
+| lint.yml | push / PR | PHP CS Fixerでコードの書き方をチェック |
+| test.yml | push / PR | MySQLを起動し、PHPUnitのテスト57件を実行 |
+| deploy.yml | masterへのpush | SSHでEC2に接続し、git pull → コンテナ起動 → マイグレーション |
+
+### 流れ
+1. 作業ブランチにpush → LintとTestsが自動実行
+2. PRを作成 → チェックがすべて合格したことを確認
+3. masterにマージ → EC2へ自動デプロイ
+
+### 教材から変更した点と理由
+- `main` → `master`：このリポジトリの基本ブランチがmasterのため
+- `working-directory: src`：Laravel本体がsrcフォルダにあるため
+- PHP 8.3 → 8.2：手元のDocker環境と合わせ、環境の差をなくすため
+- テスト前に `npm run build` を追加：CIには `public/build` がなく、画面を表示するテストが失敗したため
+- デプロイのコマンドを `docker compose exec -T app` 経由に変更：サーバーではPHPがDockerの中で動いているため
+- `set -e` を追加：途中のコマンドが失敗したら、そこでデプロイを止めるため
+
+### つまずいた点と解決
+- CIでテストが6件失敗 → ログから `manifest.json` がないことを特定。ビルド結果は `.gitignore` で上げない設定のため、CIの中でビルドするよう修正
+- GitHub ActionsからEC2にSSHできない → セキュリティグループでSSHを自分のIPだけに制限していたため。デプロイの間だけ開け、終了後すぐに戻した
+- デプロイ後にドメインで表示できない → サーバー内から `curl` で200 OKを確認し、デプロイは成功していると切り分け。原因はドメインの情報認証の未対応だった
+
+### 振り返り
+- 一つひとつの項目を手作業で確認しなくても、必要なチェックとテストが自動で実行され、
+  さらにPRをマージしただけでサーバーに反映されたときに、自動化の便利さを実感した。
+- デプロイ後にドメインで表示できず、原因の特定に時間がかかった。原因はお名前.comの
+  ドメイン情報認証が済んでいなかったことだった。使っている道具やサービスの状態を
+  日頃から丁寧に確認しておくことで、作業中の原因不明のエラーを減らせると感じた。
+---
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
