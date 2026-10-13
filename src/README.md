@@ -106,7 +106,9 @@ npx eslint resources/js/
 修正後: Found 4 security vulnerability advisories affecting 1 package
 ```
 guzzle・commonmark・flysystem を更新。残り4件は laravel/framework のもので、Laravel 11系には修正版がないため、Laravel 12 へのアップグレードで対応予定。
+
 ---
+
 ## Week 15: CI/CD（GitHub Actions）
 
 ### 概要
