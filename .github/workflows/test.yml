@@ -28,6 +28,7 @@ jobs:
         with:
           php-version: '8.2'
           extensions: mbstring, xml, ctype, json, pdo, mysql
+          coverage: pcov
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
@@ -65,4 +66,4 @@ jobs:
           DB_DATABASE: testing
           DB_USERNAME: root
           DB_PASSWORD: password
-        run: php artisan test
+        run: php artisan test --coverage
