@@ -1,0 +1,36 @@
+# Git関連
+.git
+.gitignore
+.gitattributes
+
+# 依存関係（ビルドステージで作り直す）
+node_modules
+vendor
+
+# 環境設定（秘密情報）
+.env
+.env.*
+
+# テスト・開発ツール（本番では使わない）
+tests
+phpunit.xml
+.phpunit.cache
+phpstan.neon
+.php-cs-fixer.php
+.php-cs-fixer.cache
+eslint.config.js
+.editorconfig
+
+# ローカルで溜まったゴミ
+storage/logs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+public/storage
+
+# ビルド成果物（ビルドステージで作り直す）
+public/hot
+public/build
+
+# その他
+README.md

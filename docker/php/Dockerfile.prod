@@ -1,0 +1,61 @@
+# ============================================
+# ステージ1：PHPの部品を揃える厨房
+# ============================================
+FROM composer:2 AS composer-builder
+WORKDIR /app
+
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader \
+    --no-interaction --prefer-dist --ignore-platform-reqs
+
+COPY . .
+RUN composer dump-autoload --optimize --no-dev --no-scripts
+
+
+# ============================================
+# ステージ2：CSS/JSを作る厨房
+# ============================================
+FROM node:22-alpine AS node-builder
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+
+# ============================================
+# ステージ3：お皿（最終イメージ）
+# ============================================
+FROM php:8.2-fpm-alpine
+WORKDIR /var/www/html
+ENV TZ=Asia/Tokyo
+
+# 拡張のインストールとヘルスチェックの準備（rootのうちに済ませる）
+RUN apk add --no-cache fcgi libpng tzdata \
+    && apk add --no-cache --virtual .build-deps libpng-dev \
+    && docker-php-ext-install pdo_mysql exif pcntl bcmath gd \
+    && apk del .build-deps \
+    && echo "pm.status_path = /status" >> /usr/local/etc/php-fpm.d/zz-docker.conf \
+    && wget -O /usr/local/bin/php-fpm-healthcheck \
+       https://raw.githubusercontent.com/renatomefi/php-fpm-healthcheck/master/php-fpm-healthcheck \
+    && chmod +x /usr/local/bin/php-fpm-healthcheck
+
+# 一般ユーザーを作る
+RUN addgroup -g 1000 appuser \
+    && adduser -D -u 1000 -G appuser appuser
+
+# 厨房から完成品だけ持ってくる
+COPY --chown=appuser:appuser --from=composer-builder /app/vendor ./vendor
+COPY --chown=appuser:appuser --from=node-builder /app/public/build ./public/build
+
+# アプリのコード
+COPY --chown=appuser:appuser . .
+
+USER appuser
+
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+  CMD php-fpm-healthcheck || exit 1
+
+CMD ["php-fpm"]
