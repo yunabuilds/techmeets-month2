@@ -31,6 +31,7 @@ public/storage
 # ビルド成果物（ビルドステージで作り直す）
 public/hot
 public/build
+bootstrap/cache/*.php
 
 # その他
 README.md
