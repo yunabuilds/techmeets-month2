@@ -1,0 +1,56 @@
+# 練習課題3：ログ集中管理の検証用（ローカル専用）
+name: techmeets-logging
+
+services:
+  # ログ収集係
+  fluentd:
+    image: fluent/fluentd:v1.19-2
+    ports:
+      - "24224:24224"
+    volumes:
+      - ./docker/fluentd/fluent.conf:/fluentd/etc/fluent.conf:ro
+      - fluentd-log:/fluentd/log
+
+  # Laravel（本番用イメージ）
+  app:
+    image: myapp:after
+    env_file:
+      - .env.logging
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - LOG_CHANNEL=stderr
+      - LOG_LEVEL=debug
+      - SESSION_DRIVER=file
+      - CACHE_STORE=file
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+    depends_on:
+      - fluentd
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: localhost:24224
+        fluentd-async: "true"
+        tag: techmeets.app
+
+  # Webサーバー
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./src/public:/var/www/html/public:ro
+    depends_on:
+      - app
+      - fluentd
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: localhost:24224
+        fluentd-async: "true"
+        tag: techmeets.nginx
+        
+volumes:
+  fluentd-log:
