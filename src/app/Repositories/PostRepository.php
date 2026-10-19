@@ -7,9 +7,9 @@ use App\Models\Post;
 class PostRepository
 {
     // 全件取得（最新順・ページネーション付き）
-    public function getAll()
+       public function getAll()
     {
-        return Post::latest()->paginate(10);
+        return Post::with('user')->latest()->paginate(10);
     }
 
     // IDで1件取得
