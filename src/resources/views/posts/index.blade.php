@@ -16,6 +16,7 @@
             </h2>
             <p>{{ Str::limit($post->content, 100) }}</p>
             <small>{{ $post->created_at->format('Y年m月d日') }}</small>
+            <small>著者：{{ $post->user?->name }}</small>
         </article>
     @empty
         <p>投稿がありません</p>

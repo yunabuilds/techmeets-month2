@@ -149,6 +149,80 @@ masterにマージされたらEC2へ自動でデプロイされる仕組みを�
   日頃から丁寧に確認しておくことで、作業中の原因不明のエラーを減らせると感じた。
 ---
 
+## Week 17：パフォーマンス最適化
+
+### 概要
+投稿一覧ページ（`/posts`）を対象に、N+1の解消・インデックス追加・Redisキャッシュ導入を行った。
+あわせて、アップロード画像をWebPに変換し、CloudFront経由で配信するようにした。
+
+計測の前提：
+- ローカルのDocker環境で計測（テストデータとして投稿を500件投入）
+- Lighthouse：シークレットウィンドウ・Mobile・Performanceのみ・Debugbarオフ
+- クエリ数：Laravel Debugbarの「Queries」タブ
+
+### Lighthouse（投稿一覧 `/posts`）
+| 指標 | before | after |
+|---|---|---|
+| Performance | 52 | 55 |
+| FCP | 14.8s | 18.7s |
+| LCP | 14.9s | 18.7s |
+| TBT | 200ms | 0ms |
+| CLS | 0 | 0 |
+| Speed Index | 35.9s | 35.4s |
+| TTFB | 14,185ms | 10,800ms |
+
+### N+1の解消（投稿一覧 `/posts`）
+一覧に著者名を表示したところ、投稿10件ぶん著者を1件ずつ取得するN+1が発生したため、
+`PostRepository::getAll()` で `with('user')` を使ってeager loadingに変更した。
+
+| 状態 | クエリ数 |
+|---|---|
+| 著者名表示後（N+1あり） | 14 |
+| `with('user')` で解消 | 5 |
+| キャッシュ導入後 | 2 |
+
+### インデックス（`posts.created_at`）
+一覧の `latest()`（`ORDER BY created_at DESC`）で、500件すべてを並べ替えていたため、
+`created_at` にインデックスを追加した。
+
+対象クエリ：`select * from posts order by created_at desc limit 10`
+
+| 項目 | before | after |
+|---|---|---|
+| type | ALL | index |
+| key | NULL | posts_created_at_index |
+| rows | 500 | 10 |
+| Extra | Using filesort | Backward index scan |
+
+### キャッシュ（Redis）
+- キャッシュドライバーをRedisに変更（`redis:7-alpine` をdocker-composeに追加、`predis/predis` を導入）
+- `PostRepository::getAll()` で、ページごとに10分間キャッシュ（`Cache::tags('posts')`）
+- 投稿の作成・更新・削除時に `Cache::tags('posts')->flush()` でキャッシュを破棄
+- 新しい投稿を作成したあと、一覧の先頭にすぐ反映されることを確認
+
+| 項目 | before | after |
+|---|---|---|
+| クエリ数 | 5 | 2（sessionsのみ） |
+| レスポンスタイム（Debugbar） | 18.48s / 15.88s / 16.62s / 9.7s（平均 約15.2s） | 18.19s / 18.01s / 10.56s（平均 約15.6s） |
+
+### 画像最適化（WebP + CloudFront）
+- Dockerfileで、GDをJPEG・WebP対応で再ビルド
+- `S3UploadController` で、アップロード画像をWebP（品質80）に変換してS3に保存
+- CloudFront（OAC）経由で配信
+
+配信確認URL：
+https://d19uo3nrh8rzcp.cloudfront.net/images/05cf67a5-7135-42b0-be11-626a68232a59.webp
+
+### 考察
+- N+1・インデックス・キャッシュの効果は、クエリ数（14 → 5 → 2）とEXPLAIN（rows 500 → 10）で確認できた。
+- 一方、ページ全体の時間は、SQLの合計（約0.2秒）に対してTTFBが10〜14秒あり、ローカルのDocker環境（Windows）でのファイル読み込みの遅さが大部分を占めていた。
+- そのため、Lighthouseやレスポンスタイムは計測ごとのばらつきが大きく（例：TTFBは短縮したがLCPは悪化）、今回の改善の効果ははっきりとは表れなかった。
+
+### スクリーンショット
+`docs/week17/` に保存（before / after のLighthouse、Debugbarのクエリ、EXPLAIN、WebP配信）
+
+---
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">

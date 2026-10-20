@@ -12,6 +12,12 @@ services:
     networks:
       - app-network
 
+  # Redis（キャッシュ）           
+  redis:
+    image: redis:7-alpine
+    networks:
+      - app-network
+                         
   # PHP-FPM（アプリケーション）
   app:
     build:
